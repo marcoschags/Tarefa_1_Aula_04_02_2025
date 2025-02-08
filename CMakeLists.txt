@@ -53,9 +53,14 @@ target_include_directories(Tarefa_1_Aula_04_02_2025 PRIVATE
   ${CMAKE_CURRENT_LIST_DIR}
 )
 
+pico_generate_pio_header(Tarefa_1_Aula_04_02_2025 ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
+
+
 # Add any user requested libraries
 target_link_libraries(Tarefa_1_Aula_04_02_2025 
+        hardware_pio
         hardware_i2c
+        hardware_adc
         )
 
 pico_add_extra_outputs(Tarefa_1_Aula_04_02_2025)
