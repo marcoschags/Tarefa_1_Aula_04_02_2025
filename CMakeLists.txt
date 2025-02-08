@@ -1,4 +1,4 @@
-# Generated Cmake Pico project file
+
 
 cmake_minimum_required(VERSION 3.13)
 
@@ -23,7 +23,7 @@ if (EXISTS ${picoVscode})
     include(${picoVscode})
 endif()
 # ====================================================================================
-set(PICO_BOARD pico_w CACHE STRING "Board type")
+set(PICO_BOARD pico CACHE STRING "Board type")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -35,14 +35,14 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Tarefa_1_Aula_04_02_2025 Tarefa_1_Aula_04_02_2025.c )
+add_executable(Tarefa_1_Aula_04_02_2025 Tarefa_1_Aula_04_02_2025.c inc/ssd1306.c)
 
 pico_set_program_name(Tarefa_1_Aula_04_02_2025 "Tarefa_1_Aula_04_02_2025")
 pico_set_program_version(Tarefa_1_Aula_04_02_2025 "0.1")
 
 # Modify the below lines to enable/disable output over UART/USB
 pico_enable_stdio_uart(Tarefa_1_Aula_04_02_2025 0)
-pico_enable_stdio_usb(Tarefa_1_Aula_04_02_2025 0)
+pico_enable_stdio_usb(Tarefa_1_Aula_04_02_2025 1)
 
 # Add the standard library to the build
 target_link_libraries(Tarefa_1_Aula_04_02_2025
@@ -50,12 +50,12 @@ target_link_libraries(Tarefa_1_Aula_04_02_2025
 
 # Add the standard include files to the build
 target_include_directories(Tarefa_1_Aula_04_02_2025 PRIVATE
-        ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}
 )
 
 # Add any user requested libraries
 target_link_libraries(Tarefa_1_Aula_04_02_2025 
-        
+        hardware_i2c
         )
 
 pico_add_extra_outputs(Tarefa_1_Aula_04_02_2025)
