@@ -1,5 +1,3 @@
-
-
 cmake_minimum_required(VERSION 3.13)
 
 set(CMAKE_C_STANDARD 11)
@@ -34,8 +32,11 @@ project(Tarefa_1_Aula_04_02_2025 C CXX ASM)
 pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
-
-add_executable(Tarefa_1_Aula_04_02_2025 Tarefa_1_Aula_04_02_2025.c inc/ssd1306.c)
+add_executable(Tarefa_1_Aula_04_02_2025 
+                Tarefa_1_Aula_04_02_2025.c 
+                inc/ssd1306.c
+                inc/ws2812.c
+                )
 
 pico_set_program_name(Tarefa_1_Aula_04_02_2025 "Tarefa_1_Aula_04_02_2025")
 pico_set_program_version(Tarefa_1_Aula_04_02_2025 "0.1")
@@ -50,11 +51,10 @@ target_link_libraries(Tarefa_1_Aula_04_02_2025
 
 # Add the standard include files to the build
 target_include_directories(Tarefa_1_Aula_04_02_2025 PRIVATE
-  ${CMAKE_CURRENT_LIST_DIR}
+  ${CMAKE_CURRENT_LIST_DIR}/inc
 )
 
 pico_generate_pio_header(Tarefa_1_Aula_04_02_2025 ${CMAKE_CURRENT_LIST_DIR}/ws2812.pio)
-
 
 # Add any user requested libraries
 target_link_libraries(Tarefa_1_Aula_04_02_2025 
@@ -64,4 +64,3 @@ target_link_libraries(Tarefa_1_Aula_04_02_2025
         )
 
 pico_add_extra_outputs(Tarefa_1_Aula_04_02_2025)
-

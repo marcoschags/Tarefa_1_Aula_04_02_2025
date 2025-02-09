@@ -15,7 +15,7 @@ cont:
 
 
 % c-sdk {
-static inline void ws2812_program_init(PIO pio, uint sm, uint offset, uint pin)
+static inline void ws2812_program_init(PIO pio, uint sm, uint offset, uint pin, uint frequency)
 {
     pio_sm_config c = ws2812_program_get_default_config(offset);
 

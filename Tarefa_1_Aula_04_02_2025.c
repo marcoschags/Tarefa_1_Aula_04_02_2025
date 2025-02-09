@@ -4,7 +4,9 @@
 #include "inc/ssd1306.h"
 #include "inc/font.h"
 #include <stdio.h>
-#include <ctype.h>  // Para utilizar a função isdigit()
+#include <ctype.h>
+#include "hardware/clocks.h"
+#include "ws2812.pio.h"  // Biblioteca para controlar os LEDs WS2812
 
 #define I2C_PORT i2c1
 #define I2C_SDA 14
@@ -13,7 +15,43 @@
 #define WIDTH 128
 #define HEIGHT 64
 
-// Função para exibir o nome "Marcos" e outras animações
+#define LED_PIN 7  // Pino de controle da matriz WS2812
+#define NUM_LEDS 25 // Matriz 5x5
+
+uint32_t leds[NUM_LEDS]; // Buffer para os LEDs
+
+// Mapeamento simplificado de caracteres para a matriz 5x5
+const uint8_t font5x5[10][5] = {
+    {0b01110, 0b10001, 0b10001, 0b10001, 0b01110}, // 0
+    {0b00100, 0b01100, 0b00100, 0b00100, 0b01110}, // 1
+    {0b01110, 0b00001, 0b01110, 0b10000, 0b11111}, // 2
+    {0b01110, 0b00001, 0b01110, 0b00001, 0b01110}, // 3
+    {0b10001, 0b10001, 0b01110, 0b00001, 0b00001}, // 4
+    {0b11111, 0b10000, 0b01110, 0b00001, 0b01110}, // 5
+    {0b01110, 0b10000, 0b11110, 0b10001, 0b01110}, // 6
+    {0b11111, 0b00001, 0b00010, 0b00100, 0b00100}, // 7
+    {0b01110, 0b10001, 0b01110, 0b10001, 0b01110}, // 8
+    {0b01110, 0b10001, 0b01111, 0b00001, 0b01110}  // 9
+};
+
+// Atualiza a matriz de LEDs
+void mostrar_caractere_led(char c) {
+    if (c < '0' || c > '9') return; // Apenas números suportados
+    int index = c - '0';
+
+    for (int y = 0; y < 5; y++) {
+        for (int x = 0; x < 5; x++) {
+            int ledIndex = y * 5 + x;
+            if (font5x5[index][y] & (1 << (4 - x))) {
+                leds[ledIndex] = 0xFFFFFF; // Branco
+            } else {
+                leds[ledIndex] = 0x000000; // Preto (desligado)
+            }
+        }
+    }
+    ws2812_show(leds, NUM_LEDS);
+}
+
 void exibir_animacao(ssd1306_t *ssd) {
     static bool cor = true; // Flag para alternar a cor
     cor = !cor;
@@ -28,65 +66,49 @@ void exibir_animacao(ssd1306_t *ssd) {
 }
 
 int main() {
-    // Inicialização do I2C. Usando a taxa de 400kHz.
     i2c_init(I2C_PORT, 400 * 1000);
+    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C);
+    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C);
+    gpio_pull_up(I2C_SDA);
+    gpio_pull_up(I2C_SCL);
 
-    gpio_set_function(I2C_SDA, GPIO_FUNC_I2C); // Configura o pino SDA para I2C
-    gpio_set_function(I2C_SCL, GPIO_FUNC_I2C); // Configura o pino SCL para I2C
-    gpio_pull_up(I2C_SDA); // Habilita o pull-up no pino SDA
-    gpio_pull_up(I2C_SCL); // Habilita o pull-up no pino SCL
-
-    ssd1306_t ssd; // Inicializa a estrutura do display
-    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT); // Inicializa o display
-    ssd1306_config(&ssd); // Configura o display
-    ssd1306_send_data(&ssd); // Envia os dados para o display
-
-    // Limpa o display. O display começa com todos os pixels apagados.
-    ssd1306_fill(&ssd, false);
+    ssd1306_t ssd;
+    ssd1306_init(&ssd, WIDTH, HEIGHT, false, ENDERECO, I2C_PORT);
+    ssd1306_config(&ssd);
     ssd1306_send_data(&ssd);
-
-    // Inicializa a comunicação serial
-    stdio_init_all();  // Inicializa a comunicação serial
-    sleep_ms(100);     // Aguarda um pouco para garantir a inicialização
+    
+    stdio_init_all();
+    sleep_ms(100);
+    
+    ws2812_init(LED_PIN); // Inicializa WS2812
 
     while (true) {
-        // Exibe a animação do nome "Marcos" e outras strings
         exibir_animacao(&ssd);
+        sleep_ms(2000);
 
         char c = '\0';
         bool char_received = false;
 
-        // Espera até que um caractere numérico seja digitado
         while (!char_received) {
-            // Verifica se há caracteres disponíveis no Serial Monitor
             if (stdio_usb_connected()) {
-                // Tenta ler um caractere
-                c = getchar_timeout_us(0); 
-                if (c != PICO_ERROR_TIMEOUT) { // Se um caractere foi recebido
-                    printf("Caractere recebido (hex): 0x%X\n", c);  // Exibe o valor hexadecimal
-
-                    // Verifica se o caractere é um número de '0' a '9'
-                    if (isdigit(c)) {
-                        printf("Caractere numérico recebido: %c\n", c);  // Exibe o caractere numérico
-                        char_received = true;  // Marca que o caractere foi recebido
-                    } else {
-                        // Não exibe mensagem para caracteres não numéricos
-                        // printf("Caractere não numérico ignorado: %c\n", c); // Se quiser logar a ignorância, pode ativar
-                    }
+                c = getchar_timeout_us(0);
+                if (c != PICO_ERROR_TIMEOUT && isdigit(c)) {
+                    printf("Caractere recebido: %c\n", c);
+                    char_received = true;
                 }
             }
-
-            sleep_ms(100); // Espera 100ms antes de tentar ler novamente
+            sleep_ms(100);
         }
 
-        // Limpa o display e exibe o caractere recebido
+        // Exibir no OLED
         ssd1306_fill(&ssd, false);
-        ssd1306_draw_char(&ssd, c, 60, 28); // Exibe o caractere no centro do display
+        ssd1306_draw_char(&ssd, c, 60, 28);
         ssd1306_send_data(&ssd);
 
-        // Aguarda 2 segundos antes de retornar à animação
-        sleep_ms(2000); // 2000ms = 2 segundos
-    }
+        // Exibir na matriz de LEDs
+        mostrar_caractere_led(c);
 
+        sleep_ms(2000);
+    }
     return 0;
 }
