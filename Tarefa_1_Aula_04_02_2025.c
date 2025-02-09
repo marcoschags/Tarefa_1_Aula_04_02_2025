@@ -59,9 +59,9 @@ void exibir_animacao(ssd1306_t *ssd) {
     // Atualiza o conteúdo do display com animações
     ssd1306_fill(ssd, !cor); // Limpa o display
     ssd1306_rect(ssd, 3, 3, 122, 58, cor, !cor); // Desenha um retângulo
-    ssd1306_draw_string(ssd, "    CEPEDI", 8, 10); // Desenha a string "CEPEDI"
-    ssd1306_draw_string(ssd, "EMBARCATECH", 20, 30); // Desenha a string "EMBARCATECH"
-    ssd1306_draw_string(ssd, "   Marcos", 15, 48); // Desenha a string "Marcos"
+    ssd1306_draw_string(ssd, "   Marcos", 8, 10); // Desenha a string "CEPEDI"
+    ssd1306_draw_string(ssd, "Jose Chagas", 20, 30); // Desenha a string "EMBARCATECH"
+    ssd1306_draw_string(ssd, "   Souza", 15, 48); // Desenha a string "Marcos"
     ssd1306_send_data(ssd); // Atualiza o display
 }
 
@@ -100,7 +100,7 @@ int main() {
             sleep_ms(100);
         }
 
-        // Exibir no OLED
+        // Exibir no Display OLED
         ssd1306_fill(&ssd, false);
         ssd1306_draw_char(&ssd, c, 60, 28);
         ssd1306_send_data(&ssd);
